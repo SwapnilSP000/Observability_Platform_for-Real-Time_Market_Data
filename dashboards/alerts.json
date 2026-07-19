@@ -1,0 +1,19 @@
+{
+  "editable": true,
+  "panels": [
+    {
+      "title": "Alertmanager Active System Alerts",
+      "type": "alertlist",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "show": "all",
+        "sortOrder": 1
+      }
+    }
+  ],
+  "refresh": "5s",
+  "style": "dark",
+  "tags": ["deltaops", "alerts"],
+  "title": "07. Alertmanager System Alerts",
+  "uid": "deltaops-alerts"
+}

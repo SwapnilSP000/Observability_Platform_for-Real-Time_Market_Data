@@ -1,0 +1,15 @@
+# DeltaOps Code Ownership Configuration
+
+# Global Repository Owner
+*       @deltaops-core-team
+
+# Backend Code & Services
+/backend/  @deltaops-backend-lead
+/docker/   @deltaops-devops-lead
+
+# Frontend Application
+/frontend/ @deltaops-frontend-lead
+
+# Observability Infrastructure
+/monitoring/  @deltaops-sre-lead
+/dashboards/  @deltaops-sre-lead

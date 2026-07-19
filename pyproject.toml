@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deltaops"
+version = "0.1.0-alpha"
+description = "Enterprise Cryptocurrency Trading Platform with Full Observability"
+authors = [
+    { name = "DeltaOps Core Engineering", email = "engineering@deltaops.internal" }
+]
+license = { text = "Apache-2.0" }
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "httpx>=0.27.0",
+    "websockets>=12.0",
+    "python-dotenv>=1.0.1",
+    "structlog>=24.1.0",
+    "sqlalchemy>=2.0.28",
+    "alembic>=1.13.1",
+    "asyncpg>=0.29.0",
+    "orjson>=3.9.15",
+    "prometheus-client>=0.20.0",
+    "opentelemetry-api>=1.23.0",
+    "opentelemetry-sdk>=1.23.0",
+    "opentelemetry-instrumentation-fastapi>=0.44b0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.23.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.1.0",
+    "pytest-asyncio>=0.23.5",
+    "pytest-cov>=4.1.0",
+    "respx>=0.20.2",
+    "black>=24.3.0",
+    "ruff>=0.3.3",
+    "isort>=5.13.2",
+    "mypy>=1.9.0"
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311', 'py312', 'py313']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --cov=backend/app --cov-report=term-missing"
+testpaths = ["tests"]
+asyncio_mode = "auto"

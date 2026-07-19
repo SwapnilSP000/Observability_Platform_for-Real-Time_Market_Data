@@ -1,0 +1,234 @@
+version: '3.8'
+
+networks:
+  deltaops-net:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  redis_data:
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. FASTAPI BACKEND SERVICE
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: deltaops-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=DeltaOps Engine
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DELTA_BASE_URL=${DELTA_BASE_URL:-https://api.demo.delta.exchange}
+      - DELTA_WS_URL=${DELTA_WS_URL:-wss://socket.demo.delta.exchange}
+      - DELTA_API_KEY=${DELTA_API_KEY:-}
+      - DELTA_API_SECRET=${DELTA_API_SECRET:-}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    networks:
+      - deltaops-net
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ----------------------------------------------------------------------------
+  # 2. REACT FRONTEND DASHBOARD
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: deltaops-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:8080"
+      - "80:8080"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    networks:
+      - deltaops-net
+    depends_on:
+      - backend
+
+  # ----------------------------------------------------------------------------
+  # 3. PROMETHEUS METRICS SERVER
+  # ----------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: deltaops-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 4. GRAFANA DASHBOARD PLATFORM (AUTO-PROVISIONED)
+  # ----------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.3.3
+    container_name: deltaops-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=deltaops_admin_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/etc/grafana/provisioning/dashboards/json:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - deltaops-net
+    depends_on:
+      - prometheus
+      - loki
+      - jaeger
+
+  # ----------------------------------------------------------------------------
+  # 5. LOKI STRUCTURED LOG STORE
+  # ----------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: deltaops-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/tmp/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 6. PROMTAIL CONTAINER LOG TAILER
+  # ----------------------------------------------------------------------------
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: deltaops-promtail
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - deltaops-net
+    depends_on:
+      - loki
+
+  # ----------------------------------------------------------------------------
+  # 7. JAEGER DISTRIBUTED TRACING
+  # ----------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    container_name: deltaops-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686" # UI
+      - "14250:14250" # gRPC
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 8. OPENTELEMETRY COLLECTOR
+  # ----------------------------------------------------------------------------
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    container_name: deltaops-otel-collector
+    restart: unless-stopped
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus metrics exporter
+    volumes:
+      - ./monitoring/otel-collector/otel-collector.yml:/etc/otelcol-contrib/config.yaml:ro
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    networks:
+      - deltaops-net
+    depends_on:
+      - jaeger
+      - prometheus
+      - loki
+
+  # ----------------------------------------------------------------------------
+  # 9. CADVISOR CONTAINER METRICS
+  # ----------------------------------------------------------------------------
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: deltaops-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 10. NODE EXPORTER HOST METRICS
+  # ----------------------------------------------------------------------------
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: deltaops-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 11. ALERTMANAGER SYSTEM ALERTS
+  # ----------------------------------------------------------------------------
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: deltaops-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - deltaops-net
+
+  # ----------------------------------------------------------------------------
+  # 12. REDIS CACHE & BROKER
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: deltaops-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - deltaops-net

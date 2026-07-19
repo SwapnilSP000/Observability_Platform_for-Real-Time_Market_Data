@@ -1,0 +1,31 @@
+# ==============================================================================
+# STAGE 1: BUILDER STAGE
+# ==============================================================================
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependency specifications
+COPY frontend/package*.json ./
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend ./
+
+# Build production bundle
+RUN npm run build
+
+# ==============================================================================
+# STAGE 2: RUNTIME STAGE (Nginx Unprivileged)
+# ==============================================================================
+FROM nginxinc/nginx-unprivileged:alpine-slim AS runtime
+
+# Copy custom Nginx configuration if needed or use default
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost:8080/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,16 @@
+{
+  "editable": true,
+  "panels": [
+    {
+      "title": "Live Container Logs (Loki Stream)",
+      "type": "logs",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "targets": [{ "expr": "{job=\"docker\"}", "refId": "A" }]
+    }
+  ],
+  "refresh": "5s",
+  "style": "dark",
+  "tags": ["deltaops", "logs"],
+  "title": "05. Loki Structured System Logs",
+  "uid": "deltaops-logs"
+}

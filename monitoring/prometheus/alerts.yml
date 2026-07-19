@@ -1,0 +1,47 @@
+groups:
+  - name: DeltaOpsAlertRules
+    rules:
+      - alert: BackendServiceDown
+        expr: up{job="deltaops-backend"} == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "DeltaOps FastAPI Backend Service is Down"
+          description: "Backend container on {{ $labels.instance }} has stopped responding."
+
+      - alert: HighCPUUsage
+        expr: (sum by(instance) (rate(node_cpu_seconds_total{mode!="idle"}[2m])) / sum by(instance) (rate(node_cpu_seconds_total[2m]))) * 100 > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Utilization Detected (> 85%)"
+          description: "CPU usage on {{ $labels.instance }} is currently {{ $value | printf \"%.2f\" }}%."
+
+      - alert: HighMemoryUsage
+        expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage (> 85%)"
+          description: "System memory consumption exceeds 85% safety threshold."
+
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "API P95 Latency Degradation (> 500ms)"
+          description: "P95 latency is {{ $value | printf \"%.2f\" }}s."
+
+      - alert: WebSocketDisconnected
+        expr: websocket_connections_active == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Delta Exchange WebSocket Stream Disconnected"
+          description: "Active market data WebSocket feeds have dropped to zero."

@@ -1,0 +1,25 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "id": null,
+  "panels": [
+    {
+      "title": "CPU Usage (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum by (instance) (rate(node_cpu_seconds_total{mode!=\"idle\"}[2m])) * 100", "refId": "A" }]
+    },
+    {
+      "title": "Memory Consumption (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [{ "expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100", "refId": "A" }]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["deltaops", "infrastructure"],
+  "title": "02. Infrastructure & Docker Health",
+  "uid": "deltaops-infra"
+}

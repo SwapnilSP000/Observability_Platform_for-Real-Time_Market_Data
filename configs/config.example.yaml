@@ -1,0 +1,50 @@
+# ==============================================================================
+# DELTAOPS ENTERPRISE CONFIGURATION SCHEMA
+# ==============================================================================
+
+app:
+  name: "DeltaOps"
+  version: "0.1.0-alpha"
+  environment: "development" # development | staging | production
+  debug: true
+
+gateway:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 600
+    burst: 1000
+
+delta_exchange:
+  rest_url: "https://api.demo.delta.exchange"
+  ws_url: "wss://socket.demo.delta.exchange"
+  reconnect_interval_seconds: 5
+  max_reconnect_attempts: 10
+  channels:
+    - "v2/ticker"
+    - "l2_orderbook"
+    - "user_trades"
+
+cache:
+  redis:
+    ttl_seconds: 3600
+    connection_pool_size: 20
+
+database:
+  pool_size: 10
+  max_overflow: 20
+  echo: false
+
+observability:
+  metrics:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+  tracing:
+    enabled: true
+    sample_rate: 1.0 # 100% trace sampling in dev
+  logging:
+    format: "json" # json | console
+    level: "INFO"
