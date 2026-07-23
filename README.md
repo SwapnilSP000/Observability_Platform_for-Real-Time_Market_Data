@@ -169,7 +169,37 @@ The platform includes 7 pre-built dashboards in `dashboards/`:
 
 ## 📸 Portfolio Showcase & Screenshots
 
-To see the platform's visual interface and SRE monitoring dashboard snapshots, check the [Portfolio Showcase](assets/screenshots/README.md).
+Below are the live platform screenshots demonstrating the **DeltaOps** visual interface and pre-built Grafana dashboards.
+
+### 💻 Web Application Viewports
+
+#### 📊 Home Executive Dashboard
+Shows live price tickers, system latencies, backend connectivity status, and requests volumes.
+![Executive Dashboard](assets/screenshots/01_executive_dashboard.png)
+
+#### 📈 Trading Terminal Viewport
+Integrates dynamic candlesticks chart, L2 bids/asks orderbook, execution orders interface, and active accounts telemetry.
+![Trading Terminal](assets/screenshots/02_trading_terminal.png)
+
+#### 🔍 Crypto Derivatives Market Directory
+Lists all active tickers, price movements, daily volumes, funding interest, and open contracts.
+![Market Directory](assets/screenshots/03_market_directory.png)
+
+#### 💼 Account Portfolio Analytics
+Renders total wallet equities, available margins, allocations percentage, and positions breakdowns.
+![Portfolio Analytics](assets/screenshots/04_portfolio_analytics.png)
+
+---
+
+### 🛡️ Observability & Infrastructure Dashboards
+
+#### 🌐 Grafana System Executive Overview
+Auto-provisioned executive dashboard plotting live request rates, latency quantile quantifications (P95), and active WS streams.
+![Grafana Executive Overview](assets/screenshots/05_grafana_executive_overview.png)
+
+#### 🔌 Grafana Infrastructure & Docker Health
+Tracks host OS health, cAdvisor CPU/Memory container allocations, and Promtail log aggregations.
+![Grafana Infrastructure](assets/screenshots/06_grafana_infrastructure.png)
 
 ---
 
