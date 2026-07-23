@@ -1,7 +1,7 @@
 <div align="center">
 
 # ⚡ DeltaOps
-### Enterprise Cryptocurrency Trading Platform with Full Observability
+### DevOps & Observability Platform for Real-Time Market Data Ingestion
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/CI%2FCD-Passing-emerald?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
@@ -16,7 +16,7 @@
 
 ---
 
-**DeltaOps** is a production-grade, microservice-friendly cryptocurrency trading platform designed for high-frequency market data ingestion, automated order execution, real-time risk management, and enterprise-grade observability. Integrated with **Delta Exchange API & WebSocket feeds**.
+**DeltaOps** is a DevOps-first observability platform showcasing a production-grade cryptocurrency trading pipeline. The **primary focus** of this project is demonstrating **enterprise-grade DevOps infrastructure and cloud-native telemetry** (Prometheus metrics, Loki structured logging, and Jaeger distributed tracing). The **secondary focus** is a real-time trading client interface (integrated with Delta Exchange API & WebSockets) that serves as the complex, high-throughput microservice workload to be monitored.
 
 [Architecture Docs](docs/ARCHITECTURE.md) • [System Design](docs/SYSTEM_DESIGN.md) • [API Guidelines](docs/API_GUIDELINES.md) • [Developer Guide](docs/DEVELOPMENT.md) • [Deployment Strategy](docs/DEPLOYMENT.md) • [Observability Report](docs/OBSERVABILITY_REPORT.md) • [Roadmap](ROADMAP.md) • [Screenshots Showcase](assets/screenshots/README.md)
 
@@ -43,9 +43,18 @@
 
 ## 🌌 Overview
 
-Modern quantitative trading platforms require sub-millisecond execution capabilities alongside end-to-end trace visibility. **DeltaOps** bridges high-performance market connectivity with cloud-native telemetry, serving as a blueprint for institutional-grade trading platforms (inspired by Binance, Coinbase Pro, Zerodha, and Delta Exchange).
+**DeltaOps** is structured around a clear hierarchy of implementation objectives:
 
-The platform integrates directly with the Delta Exchange API, implementing signature-based authentication (HMAC-SHA256) and a robust WebSocket client that maintains a persistent connection for L2 orderbook feeds and ticker updates.
+1. **🚀 Primary Focus: DevOps & Observability Pipeline**
+   * Deploying a unified 12-microservice ecosystem orchestrated via Docker Compose.
+   * Instrumenting the FastAPI application with OpenTelemetry SDK to export spans to the OpenTelemetry Collector and Jaeger.
+   * Formatting structured JSON application logs with standard correlation keys (`trace_id`, `span_id`) which are scraped by Promtail and aggregated in Grafana Loki.
+   * Scraping system, container, and application metrics via Prometheus and rendering them in Grafana via auto-provisioned dashboards.
+
+2. **📈 Secondary Focus: Real-Time Trading Workload**
+   * Operating a client system designed for Delta Exchange REST and L2 WebSocket orderbook streams.
+   * Processing low-latency ticks and trades to act as the live, high-frequency data workload that exercises the underlying observability infrastructure.
+   * Handling secure, timestamp-aligned signature authentication (HMAC-SHA256) with auto clock-skew correction.
 
 ---
 
