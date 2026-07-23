@@ -1,4 +1,7 @@
+import os
 import time
+import contextlib
+import time as _time
 from typing import Optional
 from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from opentelemetry import trace
@@ -46,6 +49,17 @@ DELTA_API_LATENCY_SECONDS = Histogram(
 ACTIVE_WEBSOCKET_CONNECTIONS.set(0)
 
 
+@contextlib.contextmanager
+def record_delta_latency(endpoint: str):
+    """Context manager to time Delta Exchange REST calls and record to histogram."""
+    start = _time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = _time.perf_counter() - start
+        DELTA_API_LATENCY_SECONDS.labels(endpoint=endpoint).observe(elapsed)
+
+
 # 2. OpenTelemetry Initialization
 def setup_telemetry() -> Optional[trace.Tracer]:
     """
@@ -55,10 +69,12 @@ def setup_telemetry() -> Optional[trace.Tracer]:
         resource = Resource.create(attributes={"service.name": settings.APP_NAME})
         provider = TracerProvider(resource=resource)
         # Export to the OTel Collector which forwards to Jaeger
-        import os; _ep = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"); processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=_ep, insecure=True))
+        _otlp_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+        _exporter = OTLPSpanExporter(endpoint=_otlp_endpoint, insecure=True)
+        processor = BatchSpanProcessor(_exporter)
         provider.add_span_processor(processor)
         trace.set_tracer_provider(provider)
-        logger.info("OpenTelemetry SDK initialized with OTLP gRPC collector exporter", endpoint=_ep)
+        logger.info("OpenTelemetry SDK initialized with OTLP gRPC collector exporter", endpoint=_otlp_endpoint)
         return trace.get_tracer(settings.APP_NAME)
     except Exception as err:
         logger.warning("Failed to initialize OpenTelemetry exporter, falling back to no-op tracer", error=str(err))

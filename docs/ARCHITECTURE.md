@@ -1,3 +1,43 @@
+## ⚠️ Current Implementation vs. Planned Architecture
+
+This document describes **both** the current single-backend implementation (Phase 1) and the planned multi-service architecture (Phase 2+).
+
+### Phase 1 — Current Implementation (This Repo)
+
+The current codebase implements a **single FastAPI service** acting as:
+- Market data adapter (Delta Exchange REST + WebSocket)
+- API gateway (direct REST endpoints)
+- Telemetry emitter (Prometheus metrics, OTel traces, structured logs)
+
+**Infrastructure running now:**
+| Service | Status | Notes |
+|---------|--------|-------|
+| FastAPI Backend | ✅ Implemented | Single process, all roles combined |
+| React Frontend | ✅ Implemented | AWS Cloudscape UI |
+| Prometheus | ✅ Running | Scrapes `/metrics` from backend |
+| Grafana | ✅ Running | 7 auto-provisioned dashboards |
+| Loki + Promtail | ✅ Running | Structured JSON log ingestion |
+| Jaeger | ✅ Running | OTLP traces via OTel Collector |
+| OTel Collector | ✅ Running | Routing hub for all signals |
+| Alertmanager | ✅ Running | Alert routing (webhook receiver) |
+| Redis | ✅ Running | Available for future use |
+| Node Exporter | ✅ Running | Host OS metrics |
+| cAdvisor | ✅ Running | Container resource metrics |
+| PostgreSQL | ❌ Not implemented | Planned for Phase 2 |
+
+**Metrics currently instrumented:**
+- `http_requests_total{method, endpoint, status}` — Counter
+- `http_request_duration_seconds{method, endpoint}` — Histogram
+- `active_websocket_connections` — Gauge
+- `market_requests_total{symbol, endpoint_type}` — Counter
+- `delta_api_latency_seconds{endpoint}` — Histogram
+
+### Phase 2+ — Planned (Architecture Docs Below)
+
+The architecture diagrams below describe the planned decomposition into separate microservices (Risk Engine, OMS, API Gateway, Redis Pub/Sub). These are design targets, not current reality.
+
+---
+
 # DeltaOps Architecture Specification
 
 ## Executive Summary

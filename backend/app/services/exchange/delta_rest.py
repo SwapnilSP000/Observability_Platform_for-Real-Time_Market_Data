@@ -93,6 +93,7 @@ class DeltaRESTClient(BaseExchangeClient):
             while attempt <= self.max_retries:
                 attempt += 1
                 try:
+                    _req_start = time.perf_counter()
                     async with httpx.AsyncClient(timeout=self.timeout) as client:
                         response = await client.request(
                             method=method,
@@ -101,6 +102,10 @@ class DeltaRESTClient(BaseExchangeClient):
                             json=json_data,
                             headers=headers,
                         )
+                    _req_elapsed = time.perf_counter() - _req_start
+                    # Import deferred to avoid circular import at module load time
+                    from backend.app.core.telemetry import DELTA_API_LATENCY_SECONDS
+                    DELTA_API_LATENCY_SECONDS.labels(endpoint=path).observe(_req_elapsed)
 
                     if response.status_code == 200:
                         # Success: remember working base_url

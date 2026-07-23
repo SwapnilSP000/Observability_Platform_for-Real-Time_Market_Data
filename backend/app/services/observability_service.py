@@ -1,3 +1,4 @@
+import os
 import httpx
 import asyncio
 from typing import Dict, Any, List
@@ -14,10 +15,10 @@ class ObservabilityService:
 
     def __init__(
         self,
-        prometheus_url: str = "http://localhost:9090",
-        loki_url: str = "http://localhost:3100",
-        jaeger_url: str = "http://localhost:16686",
-        alertmanager_url: str = "http://localhost:9093",
+        prometheus_url: str = os.environ.get("PROMETHEUS_URL", "http://prometheus:9090"),
+        loki_url: str = os.environ.get("LOKI_URL", "http://loki:3100"),
+        jaeger_url: str = os.environ.get("JAEGER_URL", "http://jaeger:16686"),
+        alertmanager_url: str = os.environ.get("ALERTMANAGER_URL", "http://alertmanager:9093"),
     ):
         self.prometheus_url = prometheus_url.rstrip("/")
         self.loki_url = loki_url.rstrip("/")
@@ -51,15 +52,18 @@ class ObservabilityService:
             except Exception as err:
                 return name, {"status": "error", "error": str(err), "port": port}
 
+        grafana_url = os.environ.get("GRAFANA_URL", "http://grafana:3000")
+        otel_metrics_url = "http://otel-collector:8889/metrics"
+
         async with httpx.AsyncClient(timeout=3.0) as client:
             results = await asyncio.gather(
                 _check(client, "prometheus", f"{self.prometheus_url}/-/healthy", 9090),
                 _check(client, "loki", f"{self.loki_url}/ready", 3100),
                 _check(client, "jaeger", f"{self.jaeger_url}/", 16686),
                 _check(client, "alertmanager", f"{self.alertmanager_url}/-/healthy", 9093),
-                _check(client, "grafana", "http://localhost:3000/api/health", 3000),
+                _check(client, "grafana", f"{grafana_url}/api/health", 3000),
                 # 8889 is the otel-collector Prometheus metrics exporter (HTTP) — 4317 is gRPC only
-                _check(client, "otelCollector", "http://localhost:8889/metrics", 4317),
+                _check(client, "otelCollector", otel_metrics_url, 4317),
             )
 
         statuses: Dict[str, Any] = dict(results)
@@ -68,11 +72,11 @@ class ObservabilityService:
             "port": 8000,
             "url": "localhost:8000"
         }
-        
+
         # Count operational services
         operational_count = sum(1 for s in statuses.values() if s.get("status") in ["healthy", "operational"])
         total_count = len(statuses)
-        
+
         return {
             "services": statuses,
             "summary": {
@@ -97,7 +101,7 @@ class ObservabilityService:
             logger.warning("Failed to query Prometheus API", error=str(err))
             return {"status": "unreachable", "error": str(err)}
 
-    async def query_loki_logs(self, query: str = '{app="backend"}', limit: int = 20) -> List[Dict[str, Any]]:
+    async def query_loki_logs(self, query: str = '{service="backend"}', limit: int = 20) -> List[Dict[str, Any]]:
         """Queries Loki Log Range API (/loki/api/v1/query_range). Returns empty list if Loki is offline."""
         try:
             async with httpx.AsyncClient(timeout=2.0) as client:
@@ -123,7 +127,7 @@ class ObservabilityService:
             logger.warning("Failed to query Loki API", error=str(err))
             return []
 
-    async def query_jaeger_traces(self, service: str = "backend", limit: int = 10) -> List[Dict[str, Any]]:
+    async def query_jaeger_traces(self, service: str = "DeltaOps Engine", limit: int = 10) -> List[Dict[str, Any]]:
         """Queries Jaeger Trace Search API (/api/traces)."""
         try:
             async with httpx.AsyncClient(timeout=3.0) as client:

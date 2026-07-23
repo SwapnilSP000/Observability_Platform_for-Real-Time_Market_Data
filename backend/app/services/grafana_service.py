@@ -1,3 +1,4 @@
+import os
 import httpx
 from typing import Dict, Any, List, Optional
 from backend.app.core.logging import get_logger
@@ -13,9 +14,9 @@ class GrafanaService:
 
     def __init__(
         self,
-        grafana_url: str = "http://grafana:3000",
-        admin_user: str = "admin",
-        admin_password: str = "deltaops_admin_pass"
+        grafana_url: str = os.environ.get("GRAFANA_URL", "http://grafana:3000"),
+        admin_user: str = os.environ.get("GRAFANA_ADMIN_USER", "admin"),
+        admin_password: str = os.environ.get("GRAFANA_ADMIN_PASSWORD", "deltaops_admin_pass"),
     ):
         self.grafana_url = grafana_url.rstrip("/")
         self.auth = (admin_user, admin_password)

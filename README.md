@@ -10,7 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![React](https://img.shields.io/badge/React-18.0+-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![Prometheus](https://img.shields.io/badge/Prometheus-v2.50-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
+[![Prometheus](https://img.shields.io/badge/Prometheus-v2.51-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io)
 [![Grafana](https://img.shields.io/badge/Grafana-v10.3-F46800?logo=grafana&logoColor=white)](https://grafana.com)
 [![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Enabled-F54883?logo=opentelemetry&logoColor=white)](https://opentelemetry.io)
 
@@ -169,7 +169,7 @@ The platform includes 7 pre-built dashboards in `dashboards/`:
 
 ## 📸 Portfolio Showcase & Screenshots
 
-For instructions on capturing portfolio assets for recruiters, see [assets/screenshots/README.md](assets/screenshots/README.md).
+To see the platform's visual interface and SRE monitoring dashboard snapshots, check the [Portfolio Showcase](assets/screenshots/README.md).
 
 ---
 

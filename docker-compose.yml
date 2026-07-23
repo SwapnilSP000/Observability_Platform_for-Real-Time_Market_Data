@@ -40,6 +40,11 @@ services:
       - DELTA_API_SECRET=${DELTA_API_SECRET:-}
       # OTel sends to the collector, NOT directly to Jaeger
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - PROMETHEUS_URL=http://prometheus:9090
+      - LOKI_URL=http://loki:3100
+      - JAEGER_URL=http://jaeger:16686
+      - ALERTMANAGER_URL=http://alertmanager:9093
+      - GRAFANA_URL=http://grafana:3000
     networks:
       - deltaops-net
     depends_on:
@@ -61,13 +66,13 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000}
     container_name: deltaops-frontend
     restart: unless-stopped
     ports:
       - "5173:8080"
       - "80:8080"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
     networks:
       - deltaops-net
     depends_on:

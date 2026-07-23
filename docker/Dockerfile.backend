@@ -37,9 +37,14 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
     APP_ENV=production \
     HOST=0.0.0.0 \
-    PORT=8000
+    PORT=8000 \
+    WORKERS=1 \
+    PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_multiproc
 
 WORKDIR /app
+
+# Create prometheus multiproc directory before switching to non-root user
+RUN mkdir -p /tmp/prometheus_multiproc && chown appuser:appgroup /tmp/prometheus_multiproc
 
 # Copy virtual environment from builder stage
 COPY --from=builder --chown=appuser:appgroup /opt/venv /opt/venv
@@ -58,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 # Entrypoint command
-CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WORKERS:-1}"]
