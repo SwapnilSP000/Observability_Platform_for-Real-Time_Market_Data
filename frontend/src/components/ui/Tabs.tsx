@@ -1,10 +1,13 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface TabItem {
+export interface TabItem {
   id: string;
   label: string;
-  count?: number;
+  icon?: React.ReactNode;
+  badge?: string | number;
+  /** Legacy alias for badge */
+  count?: string | number;
 }
 
 interface TabsProps {
@@ -14,36 +17,34 @@ interface TabsProps {
   className?: string;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabChange, className }) => {
-  return (
-    <div className={cn('flex items-center gap-1 border-b border-slate-800 pb-px text-xs font-medium', className)}>
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-2 border-b-2 transition-all duration-150',
-              isActive
-                ? 'border-trade-blue text-trade-blue font-semibold bg-blue-500/5'
-                : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
-            )}
-          >
-            <span>{tab.label}</span>
-            {tab.count !== undefined && (
-              <span
-                className={cn(
-                  'px-1.5 py-0.2 rounded-full text-[10px]',
-                  isActive ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-800 text-slate-400'
-                )}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-};
+export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabChange, className }) => (
+  <div className={cn('flex gap-0 border-b border-divider', className)}>
+    {tabs.map((tab) => {
+      const active = tab.id === activeTab;
+      return (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className={cn(
+            'inline-flex items-center gap-1.5 px-5 py-3 text-sm font-semibold transition-all duration-150',
+            'border-b-2 -mb-px',
+            active
+              ? 'border-brand-600 text-brand-700 font-bold'
+              : 'border-transparent text-ink-2 hover:text-ink hover:border-border font-semibold'
+          )}
+        >
+          {tab.icon}
+          {tab.label}
+          {(tab.badge ?? tab.count) !== undefined && (
+            <span className={cn(
+              'ml-1 px-1.5 py-0.5 rounded text-xs font-bold',
+              active ? 'bg-brand-100 text-brand-700' : 'bg-divider text-ink-3'
+            )}>
+              {tab.badge ?? tab.count}
+            </span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+);

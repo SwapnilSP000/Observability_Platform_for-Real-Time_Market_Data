@@ -1,3 +1,22 @@
+# ==============================================================================
+# OpenTelemetry Collector — DeltaOps
+# Version: otel/opentelemetry-collector-contrib:0.100.0
+#
+# Pipeline:
+#   Backend → OTLP gRPC :4317
+#   Traces  → jaeger:4317  (otlp/jaeger exporter — jaeger exporter removed in v0.86+)
+#   Metrics → prometheus scrape :8889
+#   Logs    → loki:3100
+# ==============================================================================
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+  zpages:
+    endpoint: 0.0.0.0:55679
+
 receivers:
   otlp:
     protocols:
@@ -6,40 +25,83 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+  # Scrape the collector's own internal metrics
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: otel-collector-self
+          scrape_interval: 10s
+          static_configs:
+            - targets: [0.0.0.0:8888]
+
 processors:
   batch:
     timeout: 1s
-    send_batch_size: 256
+    send_batch_size: 512
+    send_batch_max_size: 1024
+
+  # Add resource attributes to all signals
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: production
+        action: upsert
+
+  # Memory limiter prevents OOM
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 400
+    spike_limit_mib: 100
 
 exporters:
-  jaeger:
-    endpoint: jaeger:14250
+  # Traces → Jaeger via OTLP gRPC (internal Docker network only)
+  # Note: legacy jaeger exporter was removed in v0.86+; use otlp/jaeger instead
+  otlp/jaeger:
+    endpoint: jaeger:4317
     tls:
       insecure: true
 
+  # Metrics → Prometheus (scraped by Prometheus on :8889)
   prometheus:
     endpoint: 0.0.0.0:8889
     namespace: deltaops
+    send_timestamps: true
+    metric_expiration: 3m
 
+  # Logs → Loki
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: false
+      job: true
 
-  logging:
-    loglevel: debug
+  # Debug output — basic verbosity so logs don't flood
+  debug:
+    verbosity: basic
+    sampling_initial: 5
+    sampling_thereafter: 200
 
 service:
+  extensions: [health_check, pprof, zpages]
+
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [jaeger, logging]
+      processors: [memory_limiter, resource, batch]
+      exporters: [otlp/jaeger, debug]
 
     metrics:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus, logging]
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resource, batch]
+      exporters: [prometheus, debug]
 
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [loki, logging]
+      processors: [memory_limiter, resource, batch]
+      exporters: [loki, debug]
+
+  telemetry:
+    logs:
+      level: warn
+    metrics:
+      address: 0.0.0.0:8888

@@ -1,16 +1,58 @@
 {
+  "annotations": { "list": [] },
   "editable": true,
+  "id": null,
   "panels": [
     {
-      "title": "Live Container Logs (Loki Stream)",
+      "title": "Live Backend Logs (structured JSON)",
       "type": "logs",
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
-      "targets": [{ "expr": "{job=\"docker\"}", "refId": "A" }]
+      "gridPos": { "h": 16, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [{
+        "datasource": { "uid": "deltaops-loki" },
+        "expr": "{service=\"deltaops\"}",
+        "refId": "A",
+        "queryType": "range"
+      }]
+    },
+    {
+      "title": "Error Logs Only",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "sortOrder": "Descending" },
+      "targets": [{
+        "datasource": { "uid": "deltaops-loki" },
+        "expr": "{service=\"deltaops\"} |= \"ERROR\"",
+        "refId": "A"
+      }]
+    },
+    {
+      "title": "All Container Logs (by label)",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 26 },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "sortOrder": "Descending" },
+      "targets": [{
+        "datasource": { "uid": "deltaops-loki" },
+        "expr": "{job=\"docker\"}",
+        "refId": "A"
+      }]
     }
   ],
-  "refresh": "5s",
-  "style": "dark",
+  "refresh": "10s",
+  "schemaVersion": 39,
   "tags": ["deltaops", "logs"],
   "title": "05. Loki Structured System Logs",
-  "uid": "deltaops-logs"
+  "uid": "deltaops-logs",
+  "version": 2,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
 }

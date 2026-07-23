@@ -20,14 +20,13 @@ cd deltaops
 # 2. Configure Environment File
 cp .env.example .env
 
-# 3. Setup Python Virtual Environment for Backend
-cd backend
+# 3. Setup Python Virtual Environment for Backend (in root)
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt  (When requirements.txt is created)
+pip install -e ".[dev]"
 
 # 4. Setup Frontend Dependencies
-cd ../frontend
+cd frontend
 npm install
 ```
 

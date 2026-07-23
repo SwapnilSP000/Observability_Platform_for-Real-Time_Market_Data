@@ -88,6 +88,20 @@ def create_application() -> FastAPI:
     # Mount API v1 Router (/api/v1/...)
     app.include_router(api_v1_router, prefix="/api")
 
+    @app.get("/", tags=["Root"])
+    async def root() -> dict:
+        return {
+            "name": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "status": "online",
+            "docs": "/docs",
+            "health": "/health",
+        }
+
+    # Instrument FastAPI application with OpenTelemetry
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    FastAPIInstrumentor.instrument_app(app)
+
     return app
 
 

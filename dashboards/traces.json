@@ -1,16 +1,27 @@
 {
+  "annotations": { "list": [] },
   "editable": true,
+  "id": null,
   "panels": [
     {
-      "title": "Jaeger Distributed Trace Spans",
-      "type": "jaeger",
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
-      "targets": [{ "query": "service=deltaops-backend", "refId": "A" }]
+      "title": "Jaeger — Search Traces",
+      "type": "traces",
+      "gridPos": { "h": 16, "w": 24, "x": 0, "y": 0 },
+      "options": {},
+      "targets": [{
+        "datasource": { "uid": "deltaops-jaeger" },
+        "queryType": "search",
+        "service": "DeltaOps Engine",
+        "refId": "A"
+      }]
     }
   ],
-  "refresh": "10s",
-  "style": "dark",
+  "refresh": "30s",
+  "schemaVersion": 39,
   "tags": ["deltaops", "traces"],
   "title": "06. Jaeger OpenTelemetry Traces",
-  "uid": "deltaops-traces"
+  "uid": "deltaops-traces",
+  "version": 2,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
 }

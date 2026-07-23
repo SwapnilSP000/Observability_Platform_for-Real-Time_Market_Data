@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { SystemStatusBar } from '../components/ui/SystemStatusBar';
 
 export const AppLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
-
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-obsidian-900 text-slate-100 font-sans">
-      {/* Sidebar */}
+    <div className="flex h-screen w-screen overflow-hidden" style={{ background: 'var(--page)' }}>
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-
-      {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6 bg-obsidian-900/50">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto" style={{ background: 'var(--page)' }}>
+          <div className="px-6 py-5 max-w-[1600px] mx-auto">
+            <Outlet />
+          </div>
         </main>
+        <SystemStatusBar />
       </div>
     </div>
   );

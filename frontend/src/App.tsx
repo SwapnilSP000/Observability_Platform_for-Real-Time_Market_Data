@@ -14,8 +14,14 @@ import { Settings } from './pages/Settings';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
+      // Financial-grade aggressive refetch defaults.
+      // Individual hooks override these for their specific SLA (e.g. market tickers: 1s, dashboards: 30s).
+      retry: 2,
+      retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 5000),
+      staleTime: 500,                // data stays fresh for 500ms
+      refetchInterval: 2000,         // baseline poll every 2s (overridden per hook)
+      refetchOnWindowFocus: true,    // resume live data when user returns to tab
+      refetchIntervalInBackground: false,
     },
   },
 });

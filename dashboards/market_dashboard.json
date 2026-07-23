@@ -1,22 +1,57 @@
 {
+  "annotations": { "list": [] },
   "editable": true,
+  "graphTooltip": 1,
+  "id": null,
   "panels": [
     {
-      "title": "Delta Exchange Market Ticker Ingestion Rate",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "targets": [{ "expr": "rate(market_messages_received_total[1m])", "refId": "A" }]
+      "title": "Active WebSocket Connections",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "options": { "colorMode": "background" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "active_websocket_connections", "refId": "A", "instant": true }]
     },
     {
-      "title": "WebSocket Stream Connection State",
+      "title": "Market Data Ingestion Rate (ticks/s)",
       "type": "stat",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "targets": [{ "expr": "websocket_connections_active", "refId": "A" }]
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(market_requests_total[1m]))", "refId": "A", "legendFormat": "ticks/s" }]
+    },
+    {
+      "title": "Market Tick Rate by Symbol (ticks/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(market_requests_total{endpoint_type=\"WS_TICK\"}[1m])) by (symbol)", "refId": "A", "legendFormat": "{{symbol}}" }]
+    },
+    {
+      "title": "Market REST Request Rate by Symbol (req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(market_requests_total{endpoint_type=\"REST\"}[1m])) by (symbol)", "refId": "A", "legendFormat": "{{symbol}}" }]
+    },
+    {
+      "title": "WebSocket Connection State Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "fieldConfig": { "defaults": { "unit": "short", "min": 0 } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "active_websocket_connections", "refId": "A", "legendFormat": "WS Connections" }]
     }
   ],
   "refresh": "5s",
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": ["deltaops", "market"],
   "title": "04. Market & WebSocket Stream Data",
-  "uid": "deltaops-market"
+  "uid": "deltaops-market",
+  "version": 2,
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {}
 }

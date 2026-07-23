@@ -25,23 +25,23 @@ class OrderStatus(str, Enum):
 
 
 class OrderCreateRequest(BaseModel):
-    product_id: int = Field(..., example=27, description="Delta Exchange Product ID")
-    symbol: str = Field(..., example="BTC-PERP")
-    side: OrderSide = Field(..., example=OrderSide.BUY)
-    order_type: OrderType = Field(..., example=OrderType.LIMIT)
-    limit_price: Optional[float] = Field(None, example=64000.0)
-    size: float = Field(..., gt=0, example=1.0)
-    post_only: bool = Field(False, example=False)
+    product_id: int = Field(..., json_schema_extra={"example": 27}, description="Delta Exchange Product ID")
+    symbol: str = Field(..., json_schema_extra={"example": "BTC-PERP"})
+    side: OrderSide = Field(..., json_schema_extra={"example": OrderSide.BUY})
+    order_type: OrderType = Field(..., json_schema_extra={"example": OrderType.LIMIT})
+    limit_price: Optional[float] = Field(None, json_schema_extra={"example": 64000.0})
+    size: float = Field(..., gt=0, json_schema_extra={"example": 1.0})
+    post_only: bool = Field(False, json_schema_extra={"example": False})
 
 
 class OrderResponse(BaseModel):
-    id: str = Field(..., example="ord_8f12a4b")
-    external_order_id: Optional[str] = Field(None, example="198273645")
-    symbol: str = Field(..., example="BTC-PERP")
+    id: str = Field(..., json_schema_extra={"example": "ord_8f12a4b"})
+    external_order_id: Optional[str] = Field(None, json_schema_extra={"example": "198273645"})
+    symbol: str = Field(..., json_schema_extra={"example": "BTC-PERP"})
     side: OrderSide
     order_type: OrderType
-    price: float = Field(..., example=64000.0)
-    size: float = Field(..., example=1.0)
-    filled_size: float = Field(0.0, example=0.0)
-    status: OrderStatus = Field(..., example=OrderStatus.OPEN)
+    price: float = Field(..., json_schema_extra={"example": 64000.0})
+    size: float = Field(..., json_schema_extra={"example": 1.0})
+    filled_size: float = Field(0.0, json_schema_extra={"example": 0.0})
+    status: OrderStatus = Field(..., json_schema_extra={"example": OrderStatus.OPEN})
     created_at: datetime

@@ -2,27 +2,23 @@ import React from 'react';
 import { cn } from '../../utils/cn';
 
 interface StatusChipProps {
-  status: 'healthy' | 'operational' | 'degraded' | 'down' | boolean;
+  status: boolean | string;
   label?: string;
   className?: string;
 }
 
 export const StatusChip: React.FC<StatusChipProps> = ({ status, label, className }) => {
-  const isGood = status === 'healthy' || status === 'operational' || status === true;
-  const isDegraded = status === 'degraded';
-
-  const dotColor = isGood
-    ? 'bg-emerald-500 shadow-emerald-500/50'
-    : isDegraded
-    ? 'bg-amber-500 shadow-amber-500/50'
-    : 'bg-rose-500 shadow-rose-500/50';
-
-  const defaultText = isGood ? 'Operational' : isDegraded ? 'Degraded' : 'Offline';
-
+  const isOk = status === true || status === 'healthy' || status === 'operational' || status === 'connected';
   return (
-    <div className={cn('inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-obsidian-800/80 border border-slate-800 text-xs font-mono text-slate-300', className)}>
-      <span className={cn('w-2 h-2 rounded-full shadow-sm pulse-glow', dotColor)} />
-      <span>{label || defaultText}</span>
-    </div>
+    <span className={cn(
+      'inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold border',
+      isOk
+        ? 'text-ok-text bg-ok-light border-ok-mid'
+        : 'text-crit-text bg-crit-light border-crit-mid',
+      className
+    )}>
+      <span className={cn('w-1.5 h-1.5 rounded-full', isOk ? 'bg-ok animate-pulse2' : 'bg-crit')} />
+      {label ?? (isOk ? 'Healthy' : 'Degraded')}
+    </span>
   );
 };

@@ -13,6 +13,7 @@ def test_hmac_signature_generation() -> None:
     signature = generate_delta_signature(
         method="GET",
         path="/v2/tickers",
+        query_string="",
         payload="",
         timestamp="1784507400",
         secret="secret12345"

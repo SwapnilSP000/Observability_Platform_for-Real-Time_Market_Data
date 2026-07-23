@@ -1,19 +1,51 @@
 {
+  "annotations": { "list": [] },
   "editable": true,
+  "id": null,
   "panels": [
     {
-      "title": "Alertmanager Active System Alerts",
+      "title": "Active Prometheus Alerts",
       "type": "alertlist",
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
       "options": {
-        "show": "all",
-        "sortOrder": 1
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": ["alertname", "severity"],
+        "groupMode": "tags",
+        "maxItems": 20,
+        "show": "currentStateSortedByLastStateChange",
+        "sortOrder": 1,
+        "stateFilter": { "error": true, "firing": true, "noData": false, "normal": false, "pending": true }
       }
+    },
+    {
+      "title": "Alert Firing Rate (last 1h)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum by (alertname) (ALERTS{alertstate=\"firing\"})", "refId": "A", "legendFormat": "{{alertname}}" }]
+    },
+    {
+      "title": "Backend Up / Down",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "options": { "colorMode": "background" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": { "1": { "text": "UP", "color": "green" }, "0": { "text": "DOWN", "color": "red" } } }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "up{job=\"deltaops-backend\"}", "refId": "A", "instant": true }]
     }
   ],
-  "refresh": "5s",
-  "style": "dark",
+  "refresh": "15s",
+  "schemaVersion": 39,
   "tags": ["deltaops", "alerts"],
   "title": "07. Alertmanager System Alerts",
-  "uid": "deltaops-alerts"
+  "uid": "deltaops-alerts",
+  "version": 2,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
 }

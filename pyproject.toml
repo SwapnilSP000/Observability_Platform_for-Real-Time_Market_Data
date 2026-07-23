@@ -9,7 +9,7 @@ description = "Enterprise Cryptocurrency Trading Platform with Full Observabilit
 authors = [
     { name = "DeltaOps Core Engineering", email = "engineering@deltaops.internal" }
 ]
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -60,3 +60,9 @@ minversion = "8.0"
 addopts = "-ra -q --cov=backend/app --cov-report=term-missing"
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
+namespaces = true
+

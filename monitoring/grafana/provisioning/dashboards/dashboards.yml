@@ -4,8 +4,12 @@ providers:
   - name: 'DeltaOps Dashboards'
     orgId: 1
     folder: 'DeltaOps Enterprise Platform'
+    folderUid: deltaops-folder
     type: file
     disableDeletion: false
     editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
     options:
       path: /etc/grafana/provisioning/dashboards/json
+      foldersFromFilesStructure: false

@@ -1,0 +1,74 @@
+# ==============================================================================
+# Grafana Datasource Provisioning — DeltaOps
+# Exactly one file, three datasources. All URLs use Docker service names.
+# ==============================================================================
+
+apiVersion: 1
+
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+  - name: Loki
+    orgId: 1
+  - name: Jaeger
+    orgId: 1
+
+datasources:
+
+  # ── Prometheus ──────────────────────────────────────────────────────────────
+  - name: Prometheus
+    uid: deltaops-prometheus
+    type: prometheus
+    orgId: 1
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+      timeInterval: "10s"
+      queryTimeout: "60s"
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: deltaops-jaeger
+          urlDisplayLabel: "View Trace in Jaeger"
+
+  # ── Loki ────────────────────────────────────────────────────────────────────
+  - name: Loki
+    uid: deltaops-loki
+    type: loki
+    orgId: 1
+    url: http://loki:3100
+    access: proxy
+    isDefault: false
+    editable: false
+    jsonData:
+      maxLines: 5000
+      derivedFields:
+        # Match trace_id in JSON log lines and link to Jaeger
+        - name: TraceID
+          matcherRegex: 'trace_id.*?([a-f0-9]{32})'
+          url: ""
+          datasourceUid: deltaops-jaeger
+          urlDisplayLabel: "View Trace in Jaeger"
+
+  # ── Jaeger ──────────────────────────────────────────────────────────────────
+  - name: Jaeger
+    uid: deltaops-jaeger
+    type: jaeger
+    orgId: 1
+    url: http://jaeger:16686
+    access: proxy
+    isDefault: false
+    editable: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: deltaops-loki
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        tags:
+          - key: service.name
+            value: service
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: false

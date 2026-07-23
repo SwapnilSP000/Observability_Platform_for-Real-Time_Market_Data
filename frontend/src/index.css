@@ -1,61 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    color-scheme: dark;
+/* ── CSS Custom Properties ───────────────────────────────────────────────── */
+:root {
+  --page:       #F0F2F5;
+  --surface:    #FFFFFF;
+  --divider:    #E4E8EE;
+  --border:     #D1D9E0;
+  --ink:        #0A0F1E;   /* deep black */
+  --ink-2:      #1A2A3A;   /* dark navy text */
+  --ink-3:      #374151;   /* readable dark gray */
+  --brand:      #1D4ED8;
+  --ok:         #065F2C;   /* dark green */
+  --warn:       #92400E;   /* dark amber */
+  --crit:       #991B1B;   /* dark red */
+  --violet:     #4C1D95;   /* dark violet */
+  --teal:       #134E4A;   /* dark teal */
+  --coral:      #9A3412;   /* dark coral */
+  /* chart series */
+  --c1: #1D4ED8;
+  --c2: #065F2C;
+  --c3: #92400E;
+  --c4: #4C1D95;
+  --c5: #991B1B;
+  --c6: #134E4A;
+  --c7: #9A3412;
+  --c8: #86198F;
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; padding: 0; }
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 500;   /* slightly heavier base weight for readability */
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C8D2DC; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #A8B8C8; }
+
+/* ── Focus ───────────────────────────────────────────────────────────────── */
+:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0,115,230,0.3); border-radius: 4px; }
+
+/* ── Components ──────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ─ Card / Panel ─ */
+  .card {
+    @apply bg-surface rounded-lg border border-border shadow-card;
   }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0B0E14;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
-}
-
-/* Glassmorphism utility */
-.glass-card {
-  background: rgba(18, 24, 36, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 41, 59, 0.8);
-}
-
-.glass-card-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-.glass-card-hover:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.1);
-}
-
-/* Glowing Pulsing status indicators */
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
+  .card-hover {
+    @apply card transition-shadow duration-150 cursor-pointer hover:shadow-card-hover;
   }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.1);
+  .card-header {
+    @apply flex items-center justify-between px-5 py-3.5 border-b border-divider;
   }
+  .card-title {
+    @apply text-sm font-semibold text-ink flex items-center gap-2;
+  }
+  .card-body {
+    @apply p-5;
+  }
+
+  /* ─ Colored stat number ─ */
+  .stat-num {
+    @apply text-3xl font-bold font-mono tabular-nums leading-none;
+  }
+  .stat-label {
+    @apply text-xs font-semibold text-ink-3 uppercase tracking-wider;
+  }
+
+  /* ─ Badge ─ */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold border;
+  }
+  .badge-blue   { @apply text-brand-700 bg-brand-100 border-brand-300; }
+  .badge-green  { @apply text-ok-text   bg-ok-light  border-ok-mid; }
+  .badge-amber  { @apply text-warn-text bg-warn-light border-warn-mid; }
+  .badge-red    { @apply text-crit-text bg-crit-light border-crit-mid; }
+  .badge-violet { @apply text-violet-text bg-violet-light border-violet-mid; }
+  .badge-teal   { @apply text-teal-text bg-teal-light border-teal-mid; }
+  .badge-gray   { @apply text-ink-2 bg-surface-raised border-divider; }
+
+  /* ─ Status dot ─ */
+  .dot { @apply inline-block rounded-full shrink-0; }
+  .dot-sm  { width: 8px; height: 8px; }
+  .dot-md  { width: 10px; height: 10px; }
+  .dot-ok    { @apply bg-ok; animation: pulse2 2s ease-in-out infinite; }
+  .dot-warn  { @apply bg-warn-DEFAULT; }
+  .dot-crit  { @apply bg-crit; }
+  .dot-gray  { @apply bg-ink-4; }
+
+  /* ─ Buttons ─ */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 font-semibold rounded-sm
+           transition-all duration-150 focus:outline-none focus-visible:shadow-ring
+           disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-sm  { @apply text-xs px-3 py-1.5; }
+  .btn-md  { @apply text-sm px-4 py-2; }
+  .btn-lg  { @apply text-sm px-5 py-2.5; }
+
+  .btn-primary {
+    @apply btn bg-gradient-blue text-white hover:opacity-90 shadow-sm;
+  }
+  .btn-success {
+    @apply btn bg-gradient-green text-white hover:opacity-90 shadow-sm;
+  }
+  .btn-danger {
+    @apply btn bg-gradient-red text-white hover:opacity-90 shadow-sm;
+  }
+  .btn-outline {
+    @apply btn bg-surface text-ink-2 border border-border hover:bg-surface-raised hover:border-brand-400 font-semibold;
+  }
+  .btn-ghost {
+    @apply btn text-ink-2 hover:bg-divider;
+  }
+
+  /* ─ Table ─ */
+  .data-table { @apply w-full text-sm; }
+  .data-table thead { @apply bg-surface-raised border-b border-divider; }
+  .data-table th {
+    @apply px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-ink-2;
+  }
+  .data-table td { @apply px-4 py-3 border-b border-divider text-ink; }
+  .data-table tbody tr:last-child td { @apply border-b-0; }
+  .data-table tbody tr:hover { @apply bg-brand-50; }
+
+  /* ─ Input ─ */
+  .input {
+    @apply bg-surface border border-border rounded-sm px-3 py-2 text-sm text-ink
+           placeholder-ink-4 transition-shadow duration-100
+           focus:outline-none focus:border-brand-500 focus:shadow-ring;
+  }
+
+  /* ─ Section heading ─ */
+  .section-title {
+    @apply text-base font-bold text-ink flex items-center gap-2;
+  }
+  .section-sub {
+    @apply text-xs text-ink-3 font-mono mt-0.5;
+  }
+
+  /* ─ Log line ─ */
+  .log-line {
+    @apply font-mono text-xs py-1.5 px-3 border-b border-divider last:border-0 hover:bg-brand-50 transition-colors;
+  }
+  .log-line-error  { @apply border-l-2 border-crit bg-crit-light; }
+  .log-line-warn   { @apply border-l-2 border-warn-DEFAULT bg-warn-light; }
+  .log-line-info   { @apply border-l-2 border-brand-300; }
+  .log-line-debug  { @apply border-l-2 border-divider; }
 }
 
-.pulse-glow {
-  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes pulse2 {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.4; }
 }
+@keyframes flashGreen {
+  0%   { background-color: #B3E6CB; }
+  100% { background-color: transparent; }
+}
+@keyframes flashRed {
+  0%   { background-color: #F5A8A4; }
+  100% { background-color: transparent; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up { animation: slideUp 0.2s ease-out; }
+
+/* ── Number formatting ───────────────────────────────────────────────────── */
+.num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+.tabular-col { font-variant-numeric: tabular-nums; }
+
+/* ── Recharts base overrides ─────────────────────────────────────────────── */
+.recharts-surface { overflow: visible; }
+.recharts-cartesian-axis-tick-value { fill: #374151; font-size: 11px; font-weight: 500; }
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical   line { stroke: #E4E8EE; }
+.recharts-legend-item-text { color: #1A2A3A !important; font-size: 12px; font-weight: 600; }

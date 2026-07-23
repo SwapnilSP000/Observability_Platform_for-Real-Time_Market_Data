@@ -25,15 +25,15 @@ HTTP_REQUEST_DURATION_SECONDS = Histogram(
     buckets=(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0)
 )
 
-WEBSOCKET_CONNECTIONS_ACTIVE = Gauge(
-    "websocket_connections_active",
+ACTIVE_WEBSOCKET_CONNECTIONS = Gauge(
+    "active_websocket_connections",
     "Active client and exchange WebSocket connections"
 )
 
-MARKET_MESSAGES_RECEIVED_TOTAL = Counter(
-    "market_messages_received_total",
-    "Total real-time market data messages ingested from exchange",
-    ["symbol", "channel"]
+MARKET_REQUESTS_TOTAL = Counter(
+    "market_requests_total",
+    "Total market data requests and WebSocket tick messages processed",
+    ["symbol", "endpoint_type"]
 )
 
 DELTA_API_LATENCY_SECONDS = Histogram(
@@ -43,7 +43,7 @@ DELTA_API_LATENCY_SECONDS = Histogram(
 )
 
 # Initialize default values
-WEBSOCKET_CONNECTIONS_ACTIVE.set(1)
+ACTIVE_WEBSOCKET_CONNECTIONS.set(0)
 
 
 # 2. OpenTelemetry Initialization
@@ -54,10 +54,11 @@ def setup_telemetry() -> Optional[trace.Tracer]:
     try:
         resource = Resource.create(attributes={"service.name": settings.APP_NAME})
         provider = TracerProvider(resource=resource)
-        processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="otel-collector:4317", insecure=True))
+        # Export to the OTel Collector which forwards to Jaeger
+        import os; _ep = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"); processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=_ep, insecure=True))
         provider.add_span_processor(processor)
         trace.set_tracer_provider(provider)
-        logger.info("OpenTelemetry SDK initialized with OTLP gRPC collector exporter")
+        logger.info("OpenTelemetry SDK initialized with OTLP gRPC collector exporter", endpoint=_ep)
         return trace.get_tracer(settings.APP_NAME)
     except Exception as err:
         logger.warning("Failed to initialize OpenTelemetry exporter, falling back to no-op tracer", error=str(err))

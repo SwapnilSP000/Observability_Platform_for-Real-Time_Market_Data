@@ -9,7 +9,7 @@ class BaseExchangeClient(ABC):
     """
 
     @abstractmethod
-    async def get_tickers((self) -> List[Dict[str, Any]]:
+    async def get_tickers(self) -> List[Dict[str, Any]]:
         """Fetch real-time market tickers."""
         pass
 

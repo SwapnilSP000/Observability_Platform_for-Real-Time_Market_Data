@@ -31,9 +31,9 @@ class Settings(BaseSettings):
     WORKERS: int = 4
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
 
-    # Delta Exchange Configuration (Targeting Demo / Testnet)
-    DELTA_BASE_URL: str = "https://api.demo.delta.exchange"
-    DELTA_WS_URL: str = "wss://socket.demo.delta.exchange"
+    # Delta Exchange Configuration
+    DELTA_BASE_URL: str = "https://api.delta.exchange"
+    DELTA_WS_URL: str = "wss://socket.delta.exchange"
     DELTA_API_KEY: SecretStr = Field(default=SecretStr(""))
     DELTA_API_SECRET: SecretStr = Field(default=SecretStr(""))
 

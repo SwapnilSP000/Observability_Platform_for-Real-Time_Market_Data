@@ -1,26 +1,70 @@
 {
+  "annotations": { "list": [] },
   "editable": true,
+  "graphTooltip": 1,
+  "id": null,
   "panels": [
     {
-      "title": "HTTP Requests by Status Code",
+      "title": "HTTP Requests by Status Code (req/s)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "targets": [{ "expr": "sum(rate(http_requests_total[1m])) by (status)", "refId": "A" }]
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(http_requests_total[1m])) by (status)", "refId": "A", "legendFormat": "HTTP {{status}}" }]
     },
     {
-      "title": "Latency Percentiles (P50, P95, P99)",
+      "title": "Request Rate by Endpoint (req/s)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(http_requests_total[1m])) by (endpoint)", "refId": "A", "legendFormat": "{{endpoint}}" }]
+    },
+    {
+      "title": "Latency Percentiles P50 / P95 / P99 (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P50", "refId": "A" },
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P95", "refId": "B" },
-        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "legendFormat": "P99", "refId": "C" }
+        { "datasource": { "uid": "deltaops-prometheus" }, "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "refId": "A", "legendFormat": "P50" },
+        { "datasource": { "uid": "deltaops-prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "refId": "B", "legendFormat": "P95" },
+        { "datasource": { "uid": "deltaops-prometheus" }, "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) * 1000", "refId": "C", "legendFormat": "P99" }
       ]
+    },
+    {
+      "title": "P95 Latency by Endpoint (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)) * 1000", "refId": "A", "legendFormat": "{{endpoint}}" }]
+    },
+    {
+      "title": "Delta Exchange API Latency P95 (ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "histogram_quantile(0.95, sum(rate(delta_api_latency_seconds_bucket[5m])) by (le, endpoint)) * 1000", "refId": "A", "legendFormat": "{{endpoint}}" }]
+    },
+    {
+      "title": "HTTP Error Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))", "refId": "A", "legendFormat": "5xx Error Rate" }]
+    },
+    {
+      "title": "Request Totals (last 1h)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "increase(http_requests_total[1h])", "refId": "A", "legendFormat": "{{status}}" }]
     }
   ],
-  "refresh": "5s",
-  "style": "dark",
+  "refresh": "10s",
+  "schemaVersion": 39,
   "tags": ["deltaops", "api"],
   "title": "03. API Performance & Latency",
-  "uid": "deltaops-api-perf"
+  "uid": "deltaops-api-perf",
+  "version": 2,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
 }

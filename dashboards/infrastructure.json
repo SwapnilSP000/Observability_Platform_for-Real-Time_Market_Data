@@ -1,25 +1,57 @@
 {
   "annotations": { "list": [] },
   "editable": true,
+  "graphTooltip": 1,
   "id": null,
   "panels": [
     {
-      "title": "CPU Usage (%)",
+      "title": "Host CPU Usage (%)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "targets": [{ "expr": "sum by (instance) (rate(node_cpu_seconds_total{mode!=\"idle\"}[2m])) * 100", "refId": "A" }]
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum by(instance) (rate(node_cpu_seconds_total{mode!=\"idle\"}[2m])) / sum by(instance) (rate(node_cpu_seconds_total[2m])) * 100", "refId": "A", "legendFormat": "{{instance}}" }]
     },
     {
-      "title": "Memory Consumption (%)",
+      "title": "Host Memory Usage (%)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "targets": [{ "expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100", "refId": "A" }]
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100", "refId": "A", "legendFormat": "{{instance}}" }]
+    },
+    {
+      "title": "Container CPU Usage by Service",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name!=\"\"}[2m]))", "refId": "A", "legendFormat": "{{name}}" }]
+    },
+    {
+      "title": "Container Memory Usage (MB)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "container_memory_usage_bytes{name!=\"\"}", "refId": "A", "legendFormat": "{{name}}" }]
+    },
+    {
+      "title": "Scrape Targets Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 16 },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto", "colorMode": "background" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": { "1": { "text": "UP", "color": "green" }, "0": { "text": "DOWN", "color": "red" } } }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [{ "datasource": { "uid": "deltaops-prometheus" }, "expr": "up", "refId": "A", "legendFormat": "{{job}}", "instant": true }]
     }
   ],
-  "refresh": "5s",
-  "schemaVersion": 36,
-  "style": "dark",
+  "refresh": "10s",
+  "schemaVersion": 39,
   "tags": ["deltaops", "infrastructure"],
   "title": "02. Infrastructure & Docker Health",
-  "uid": "deltaops-infra"
+  "uid": "deltaops-infra",
+  "version": 2,
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {}
 }

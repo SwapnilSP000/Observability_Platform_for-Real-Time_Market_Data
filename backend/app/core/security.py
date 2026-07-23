@@ -10,15 +10,17 @@ from starlette.responses import Response
 def generate_delta_signature(
     method: str,
     path: str,
+    query_string: str,
     payload: str,
     timestamp: str,
     secret: str
 ) -> str:
     """
     Generates HMAC-SHA256 signature required by Delta Exchange API.
-    Signature string format: METHOD + TIMESTAMP + PATH + PAYLOAD
+    Signature string format: METHOD + TIMESTAMP + PATH + QUERY_STRING + PAYLOAD
+    Ref: https://docs.delta.exchange/#signing-a-message
     """
-    signature_data = f"{method.upper()}{timestamp}{path}{payload}"
+    signature_data = f"{method.upper()}{timestamp}{path}{query_string}{payload}"
     return hmac.new(
         secret.encode("utf-8"),
         signature_data.encode("utf-8"),

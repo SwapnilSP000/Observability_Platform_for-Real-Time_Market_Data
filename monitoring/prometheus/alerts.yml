@@ -1,47 +1,136 @@
+# ==============================================================================
+# Prometheus Alert Rules — DeltaOps
+# All metric names cross-checked against backend/app/core/telemetry.py
+#
+# Actual instrumented metrics:
+#   http_requests_total{method, endpoint, status}
+#   http_request_duration_seconds{method, endpoint}  (histogram)
+#   active_websocket_connections                      (gauge)
+#   market_requests_total{symbol, endpoint_type}
+#   delta_api_latency_seconds{endpoint}               (histogram)
+# ==============================================================================
+
 groups:
-  - name: DeltaOpsAlertRules
+  - name: DeltaOpsServiceHealth
+    interval: 15s
     rules:
+
+      # Backend container down (Prometheus scrape fails)
       - alert: BackendServiceDown
         expr: up{job="deltaops-backend"} == 0
         for: 15s
         labels:
           severity: critical
+          service: backend
         annotations:
-          summary: "DeltaOps FastAPI Backend Service is Down"
-          description: "Backend container on {{ $labels.instance }} has stopped responding."
+          summary: "DeltaOps Backend is DOWN"
+          description: >
+            The FastAPI backend on {{ $labels.instance }} has stopped responding to
+            Prometheus scrapes. Container may have crashed or the /metrics endpoint
+            is unreachable.
 
-      - alert: HighCPUUsage
-        expr: (sum by(instance) (rate(node_cpu_seconds_total{mode!="idle"}[2m])) / sum by(instance) (rate(node_cpu_seconds_total[2m]))) * 100 > 85
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High CPU Utilization Detected (> 85%)"
-          description: "CPU usage on {{ $labels.instance }} is currently {{ $value | printf \"%.2f\" }}%."
-
-      - alert: HighMemoryUsage
-        expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 85
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High Memory Usage (> 85%)"
-          description: "System memory consumption exceeds 85% safety threshold."
-
-      - alert: HighAPILatency
-        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.5
+      # Any infra scrape target missing
+      - alert: ScrapeTargetDown
+        expr: up == 0
         for: 30s
         labels:
           severity: warning
         annotations:
-          summary: "API P95 Latency Degradation (> 500ms)"
-          description: "P95 latency is {{ $value | printf \"%.2f\" }}s."
+          summary: "Scrape target {{ $labels.job }} / {{ $labels.instance }} is DOWN"
+          description: "Prometheus cannot reach {{ $labels.instance }} (job={{ $labels.job }})."
 
+  - name: DeltaOpsPerformance
+    interval: 30s
+    rules:
+
+      # High CPU — node_cpu_seconds_total from node-exporter
+      - alert: HighCPUUsage
+        expr: >
+          (
+            sum by(instance) (rate(node_cpu_seconds_total{mode!="idle"}[2m]))
+            /
+            sum by(instance) (rate(node_cpu_seconds_total[2m]))
+          ) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.instance }} ({{ $value | printf \"%.1f\" }}%)"
+          description: "CPU utilisation has exceeded 85% for more than 2 minutes."
+
+      # High memory — node_memory from node-exporter
+      - alert: HighMemoryUsage
+        expr: >
+          (
+            (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+            / node_memory_MemTotal_bytes
+          ) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory on {{ $labels.instance }} ({{ $value | printf \"%.1f\" }}%)"
+          description: "Memory consumption exceeds 85% for more than 2 minutes."
+
+      # P95 API latency high — references http_request_duration_seconds histogram
+      # (matches telemetry.py: HTTP_REQUEST_DURATION_SECONDS)
+      - alert: HighAPILatency
+        expr: >
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)
+          ) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 API latency > 500ms on {{ $labels.endpoint }}"
+          description: >
+            The 95th-percentile HTTP response time for endpoint {{ $labels.endpoint }}
+            is {{ $value | printf \"%.2f\" }}s, exceeding the 500ms SLO.
+
+      # High error rate — references http_requests_total{status} counter
+      # (matches telemetry.py: HTTP_REQUESTS_TOTAL)
+      - alert: HighErrorRate
+        expr: >
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total[5m])) > 0.05
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Error rate > 5% ({{ $value | printf \"%.1f%%\" }})"
+          description: "More than 5% of API requests are returning 5xx status codes."
+
+  - name: DeltaOpsMarketData
+    interval: 30s
+    rules:
+
+      # WebSocket feed disconnected
+      # Metric name: active_websocket_connections (gauge, from telemetry.py)
       - alert: WebSocketDisconnected
-        expr: websocket_connections_active == 0
+        expr: active_websocket_connections == 0
         for: 30s
         labels:
           severity: critical
+          service: websocket
         annotations:
-          summary: "Delta Exchange WebSocket Stream Disconnected"
-          description: "Active market data WebSocket feeds have dropped to zero."
+          summary: "Delta Exchange WebSocket feed disconnected"
+          description: >
+            The active_websocket_connections gauge has been zero for 30 seconds.
+            Real-time market data ingestion has stopped.
+
+      # No market data flowing — references market_requests_total counter
+      # (matches telemetry.py: MARKET_REQUESTS_TOTAL)
+      - alert: NoMarketDataIngestion
+        expr: sum(rate(market_requests_total[5m])) == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: market-data
+        annotations:
+          summary: "No market data ticks ingested for 2 minutes"
+          description: >
+            market_requests_total rate is zero. Delta Exchange WebSocket may be
+            disconnected or not sending ticker events.
