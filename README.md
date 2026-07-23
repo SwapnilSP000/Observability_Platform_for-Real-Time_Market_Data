@@ -1,7 +1,7 @@
 <div align="center">
 
-# ⚡ DeltaOps
-### DevOps & Observability Platform for Real-Time Market Data Ingestion
+# ⚡ Observability Platform for Real-Time Market Data
+### DevOps-First Telemetry Pipeline with Live Cryptocurrency Trading Workload
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/CI%2FCD-Passing-emerald?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
@@ -16,7 +16,7 @@
 
 ---
 
-**DeltaOps** is a DevOps-first observability platform showcasing a production-grade cryptocurrency trading pipeline. The **primary focus** of this project is demonstrating **enterprise-grade DevOps infrastructure and cloud-native telemetry** (Prometheus metrics, Loki structured logging, and Jaeger distributed tracing). The **secondary focus** is a real-time trading client interface (integrated with Delta Exchange API & WebSockets) that serves as the complex, high-throughput microservice workload to be monitored.
+**Observability Platform for Real-Time Market Data** (referenced as **DeltaOps** in technical config and service schemas) is a DevOps-first telemetry showcase for a production-grade cryptocurrency trading pipeline. The **primary focus** of this project is demonstrating **enterprise-grade DevOps infrastructure and cloud-native telemetry** (Prometheus metrics, Loki structured logging, and Jaeger distributed tracing). The **secondary focus** is a real-time trading client interface (integrated with Delta Exchange API & WebSockets) that serves as the complex, high-throughput microservice workload to be monitored.
 
 [Architecture Docs](docs/ARCHITECTURE.md) • [System Design](docs/SYSTEM_DESIGN.md) • [API Guidelines](docs/API_GUIDELINES.md) • [Developer Guide](docs/DEVELOPMENT.md) • [Deployment Strategy](docs/DEPLOYMENT.md) • [Observability Report](docs/OBSERVABILITY_REPORT.md) • [Roadmap](ROADMAP.md) • [Screenshots Showcase](assets/screenshots/README.md)
 
@@ -43,7 +43,7 @@
 
 ## 🌌 Overview
 
-**DeltaOps** is structured around a clear hierarchy of implementation objectives:
+This project is structured around a clear hierarchy of implementation objectives:
 
 1. **🚀 Primary Focus: DevOps & Observability Pipeline**
    * Deploying a unified 12-microservice ecosystem orchestrated via Docker Compose.
@@ -60,7 +60,7 @@
 
 ## 🎨 Design Aesthetics (AWS Cloudscape 2024)
 
-DeltaOps implements a complete, professional redesign matching the **AWS Console 2024** visual refresh using the **AWS Cloudscape design system**:
+The platform implements a complete, professional redesign matching the **AWS Console 2024** visual refresh using the **AWS Cloudscape design system**:
 
 - **Modern Light Theme**: Content cards use a clean `#FFFFFF` surface on a `#F2F3F3` page background, optimizing read times and contrast.
 - **Dark Navy Navigation**: Top header (`#232F3E`) and left sidebar (`#1A2535`) navigation mimic the authentic AWS Console layout, featuring collapsible menus, active item highlighting, and clean micro-interactions.
@@ -204,7 +204,7 @@ npm run dev
 
 ## 🔍 Connectivity & Gateway Verification
 
-DeltaOps includes a diagnostic gateway tool to verify system configurations and confirm authentication against the Delta Exchange API endpoints:
+The platform includes a diagnostic gateway tool to verify system configurations and confirm authentication against the Delta Exchange API endpoints:
 
 ```bash
 python run_verify.py
